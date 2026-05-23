@@ -24,13 +24,18 @@ function App() {
   const [draggingPopup, setDraggingPopup] = useState(null);
   const [characterMessage, setCharacterMessage] = useState("");
 
+  const wrongSoundRef = useRef(null);
+  const cleanSoundRef = useRef(null);
+  const popupSoundRef = useRef(null);
+  const gameOverSoundRef = useRef(null);
+
   const restartGame = () => {
-  setDirtList([]);
-  setPopupList([]);
-  setCleanliness(100);
-  setElapsedTime(0);
-  setGameOver(false);
-  setCharacter({ x: 45, y: 40 });
+    setDirtList([]);
+    setPopupList([]);
+    setCleanliness(100);
+    setElapsedTime(0);
+    setGameOver(false);
+    setCharacter({ x: 45, y: 40 });
   };
 
   const triggerShake = (type = "medium") => {
@@ -77,7 +82,7 @@ function App() {
     }, 1500);
 
     return () => clearInterval(moveInterval);
-  }, [gameOver,screen]);
+  }, [gameOver, screen]);
 
   useEffect(() => {
     const dirtInterval = setInterval(() => {
@@ -126,7 +131,7 @@ function App() {
     }, 2000);
 
     return () => clearInterval(dirtInterval);
-  }, [gameOver,screen]);
+  }, [gameOver, screen]);
 
   useEffect(() => {
     const dirtPenalty = dirtList.reduce((total, dirt) => {
@@ -143,6 +148,8 @@ function App() {
 
   useEffect(() => {
     if (cleanliness <= 0 && !gameOver) {
+
+      playSound(gameOverSoundRef);
 
       triggerShake("heavy");
 
@@ -180,6 +187,9 @@ function App() {
       };
 
       setPopupList((prev) => [...prev, newPopup]);
+
+      playSound(popupSoundRef);
+
       triggerShake("light");
     }, 5000);
 
@@ -187,53 +197,74 @@ function App() {
   }, [gameOver, screen]);
 
   const startDragPopup = (id) => {
-  setDraggingPopup(id);
-};
+    setDraggingPopup(id);
+  };
 
-useEffect(() => {
-  if (screen !== "play" || gameOver) return;
+  useEffect(() => {
+    if (screen !== "play" || gameOver) return;
 
-  const timer = setInterval(() => {
-    setElapsedTime((prev) => prev + 1);
-  }, 1000);
+    const timer = setInterval(() => {
+      setElapsedTime((prev) => prev + 1);
+    }, 1000);
 
-  return () => clearInterval(timer);
-}, [screen, gameOver]);
+    return () => clearInterval(timer);
+  }, [screen, gameOver]);
 
-useEffect(() => {
-  if (screen !== "play" || gameOver) return;
-  if (cleanliness > 20) return;
+  useEffect(() => {
+    if (screen !== "play" || gameOver) return;
+    if (cleanliness > 20) return;
 
-  const shakeInterval = setInterval(() => {
-    triggerShake("heavy");
-  }, 1500);
+    const shakeInterval = setInterval(() => {
+      triggerShake("heavy");
+    }, 1500);
 
-  return () => clearInterval(shakeInterval);
-}, [cleanliness, screen, gameOver]);
+    return () => clearInterval(shakeInterval);
+  }, [cleanliness, screen, gameOver]);
 
-const stopDragPopup = () => {
-  setDraggingPopup(null);
-};
+  useEffect(() => {
+    wrongSoundRef.current = new Audio("/sounds/wrong.mp3");
+    cleanSoundRef.current = new Audio("/sounds/clean.mp3");
+    popupSoundRef.current = new Audio("/sounds/popup.mp3");
+    gameOverSoundRef.current = new Audio("/sounds/gameover.mp3");
 
-const movePopup = (e) => {
-  if (!draggingPopup) return;
+    wrongSoundRef.current.volume = 0.7;
+    cleanSoundRef.current.volume = 0.5;
+    popupSoundRef.current.volume = 0.6;
+    gameOverSoundRef.current.volume = 0.8;
+  }, []);
 
-  const area = e.currentTarget.getBoundingClientRect();
-  const x = ((e.clientX - area.left) / area.width) * 100;
-  const y = ((e.clientY - area.top) / area.height) * 100;
+  const playSound = (soundRef) => {
+    if (!soundRef.current) return;
 
-  setPopupList((prev) =>
-    prev.map((popup) =>
-      popup.id === draggingPopup
-        ? {
+    soundRef.current.currentTime = 0;
+    soundRef.current.play().catch((error) => {
+      console.log("소리 재생 실패:", error);
+    });
+  };
+
+  const stopDragPopup = () => {
+    setDraggingPopup(null);
+  };
+
+  const movePopup = (e) => {
+    if (!draggingPopup) return;
+
+    const area = e.currentTarget.getBoundingClientRect();
+    const x = ((e.clientX - area.left) / area.width) * 100;
+    const y = ((e.clientY - area.top) / area.height) * 100;
+
+    setPopupList((prev) =>
+      prev.map((popup) =>
+        popup.id === draggingPopup
+          ? {
             ...popup,
             x: Math.min(Math.max(x, 0), 80),
             y: Math.min(Math.max(y, 0), 80),
           }
-        : popup
-    )
-  );
-};
+          : popup
+      )
+    );
+  };
 
   const cleanDirt = (id) => {
     if (gameOver) return;
@@ -247,9 +278,12 @@ const movePopup = (e) => {
           if (dirt.id !== id) return dirt;
 
           if (dirt.requiredTool !== selectedTool) {
+
+            playSound(wrongSoundRef);
+
             setCharacterMessage("그걸로는 안 닦여!");
             triggerShake("medium");
-            
+
             setTimeout(() => {
               setCharacterMessage("");
             }, 1200);
@@ -260,6 +294,8 @@ const movePopup = (e) => {
           if (now - dirt.lastScrubTime < 120) {
             return dirt;
           }
+
+          playSound(cleanSoundRef);
 
           return {
             ...dirt,
@@ -308,9 +344,8 @@ const movePopup = (e) => {
       </p>
 
       <div
-        className={`game-area ${
-          cleanliness <= 20 ? "danger" : cleanliness <= 40 ? "warning" : ""
-        } ${shakeType}`}
+        className={`game-area ${cleanliness <= 20 ? "danger" : cleanliness <= 40 ? "warning" : ""
+          } ${shakeType}`}
         onMouseDown={() => setIsCleaning(true)}
         onMouseUp={() => {
           setIsCleaning(false);
