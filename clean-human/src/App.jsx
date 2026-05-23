@@ -1,0 +1,466 @@
+import { useEffect, useRef, useState } from "react";
+import "./App.css";
+
+function App() {
+  const [screen, setScreen] = useState("start");
+
+  const [dirtList, setDirtList] = useState([]);
+  const [cleanliness, setCleanliness] = useState(100);
+  const [isCleaning, setIsCleaning] = useState(false);
+  const [selectedTool, setSelectedTool] = useState("mop");
+  const [cursorPosition, setCursorPosition] = useState({ x: 0, y: 0 });
+  const [character, setCharacter] = useState({
+    x: 45,
+    y: 40,
+  });
+
+  const characterRef = useRef(character);
+  const [gameOver, setGameOver] = useState(false);
+  const [graveList, setGraveList] = useState([]);
+  const [elapsedTime, setElapsedTime] = useState(0);
+  const [shakeType, setShakeType] = useState("");
+
+  const [popupList, setPopupList] = useState([]);
+  const [draggingPopup, setDraggingPopup] = useState(null);
+  const [characterMessage, setCharacterMessage] = useState("");
+
+  const restartGame = () => {
+  setDirtList([]);
+  setPopupList([]);
+  setCleanliness(100);
+  setElapsedTime(0);
+  setGameOver(false);
+  setCharacter({ x: 45, y: 40 });
+  };
+
+  const triggerShake = (type = "medium") => {
+    setShakeType(`shake-${type}`);
+
+    setTimeout(() => {
+      setShakeType("");
+    }, 500);
+  };
+
+  const formatTime = (seconds) => {
+    const min = String(Math.floor(seconds / 60)).padStart(2, "0");
+    const sec = String(seconds % 60).padStart(2, "0");
+
+    return `${min}:${sec}`;
+  };
+
+  const getCharacterFace = () => {
+    if (cleanliness >= 70) return "😄";
+    if (cleanliness >= 45) return "😊";
+    if (cleanliness >= 25) return "😟";
+    if (cleanliness >= 1) return "🤒";
+    return "💀";
+  };
+
+  const getToolIcon = () => {
+    if (selectedTool === "mop") return "🧽";
+    if (selectedTool === "trash") return "🗑️";
+    if (selectedTool === "glue") return "🩹";
+    return "🧽";
+  };
+
+  useEffect(() => {
+    characterRef.current = character;
+  }, [character]);
+
+  useEffect(() => {
+    const moveInterval = setInterval(() => {
+      if (gameOver || screen !== "play") return;
+      setCharacter({
+        x: Math.random() * 80 + 5,
+        y: Math.random() * 65 + 5,
+      });
+    }, 1500);
+
+    return () => clearInterval(moveInterval);
+  }, [gameOver,screen]);
+
+  useEffect(() => {
+    const dirtInterval = setInterval(() => {
+      if (gameOver || screen !== "play") return;
+      const currentCharacter = characterRef.current;
+
+      const randomX = currentCharacter.x + (Math.random() * 16 - 8);
+      const randomY = currentCharacter.y + (Math.random() * 16 - 8);
+
+      const dirtTypes = [
+        {
+          type: "dust",
+          icon: "🟤",
+          tool: "mop",
+          hp: 8,
+        },
+        {
+          type: "trash",
+          icon: "🫙",
+          tool: "trash",
+          hp: 1,
+        },
+        {
+          type: "crack",
+          icon: "⚡",
+          tool: "glue",
+          hp: 6,
+        },
+      ];
+
+      const randomType = dirtTypes[Math.floor(Math.random() * dirtTypes.length)];
+
+      const newDirt = {
+        id: Date.now() + Math.random(),
+        x: Math.min(Math.max(randomX, 0), 90),
+        y: Math.min(Math.max(randomY, 0), 85),
+        type: randomType.type,
+        icon: randomType.icon,
+        requiredTool: randomType.tool,
+        hp: randomType.hp,
+        maxHp: randomType.hp,
+        lastScrubTime: 0,
+      };
+
+      setDirtList((prev) => [...prev, newDirt]);
+    }, 2000);
+
+    return () => clearInterval(dirtInterval);
+  }, [gameOver,screen]);
+
+  useEffect(() => {
+    const dirtPenalty = dirtList.reduce((total, dirt) => {
+      if (dirt.type === "dust") return total + 3;
+      if (dirt.type === "trash") return total + 5;
+      if (dirt.type === "crack") return total + 7;
+      return total;
+    }, 0);
+
+    const newCleanliness = Math.max(100 - dirtPenalty, 0);
+
+    setCleanliness(newCleanliness);
+  }, [dirtList]);
+
+  useEffect(() => {
+    if (cleanliness <= 0 && !gameOver) {
+
+      triggerShake("heavy");
+
+      setGameOver(true);
+
+      setGraveList((prev) => [
+        ...prev,
+        {
+          id: Date.now(),
+          x: 3 + prev.length * 4,
+          y: 82,
+        },
+      ]);
+    }
+  }, [cleanliness, gameOver]);
+
+  useEffect(() => {
+    const popupInterval = setInterval(() => {
+      if (gameOver || screen !== "play") return;
+
+      const messages = [
+        "놀아줘!",
+        "청소하지 마!",
+        "나 안 더러운데?",
+        "이거 내 작품이야!",
+        "어지르는 중...",
+        "닫지 마!",
+      ];
+
+      const newPopup = {
+        id: Date.now() + Math.random(),
+        x: Math.random() * 65 + 10,
+        y: Math.random() * 55 + 10,
+        message: messages[Math.floor(Math.random() * messages.length)],
+      };
+
+      setPopupList((prev) => [...prev, newPopup]);
+      triggerShake("light");
+    }, 5000);
+
+    return () => clearInterval(popupInterval);
+  }, [gameOver, screen]);
+
+  const startDragPopup = (id) => {
+  setDraggingPopup(id);
+};
+
+useEffect(() => {
+  if (screen !== "play" || gameOver) return;
+
+  const timer = setInterval(() => {
+    setElapsedTime((prev) => prev + 1);
+  }, 1000);
+
+  return () => clearInterval(timer);
+}, [screen, gameOver]);
+
+useEffect(() => {
+  if (screen !== "play" || gameOver) return;
+  if (cleanliness > 20) return;
+
+  const shakeInterval = setInterval(() => {
+    triggerShake("heavy");
+  }, 1500);
+
+  return () => clearInterval(shakeInterval);
+}, [cleanliness, screen, gameOver]);
+
+const stopDragPopup = () => {
+  setDraggingPopup(null);
+};
+
+const movePopup = (e) => {
+  if (!draggingPopup) return;
+
+  const area = e.currentTarget.getBoundingClientRect();
+  const x = ((e.clientX - area.left) / area.width) * 100;
+  const y = ((e.clientY - area.top) / area.height) * 100;
+
+  setPopupList((prev) =>
+    prev.map((popup) =>
+      popup.id === draggingPopup
+        ? {
+            ...popup,
+            x: Math.min(Math.max(x, 0), 80),
+            y: Math.min(Math.max(y, 0), 80),
+          }
+        : popup
+    )
+  );
+};
+
+  const cleanDirt = (id) => {
+    if (gameOver) return;
+    if (!isCleaning) return;
+
+    const now = Date.now();
+
+    setDirtList((prev) =>
+      prev
+        .map((dirt) => {
+          if (dirt.id !== id) return dirt;
+
+          if (dirt.requiredTool !== selectedTool) {
+            setCharacterMessage("그걸로는 안 닦여!");
+            triggerShake("medium");
+            
+            setTimeout(() => {
+              setCharacterMessage("");
+            }, 1200);
+
+            return dirt;
+          }
+
+          if (now - dirt.lastScrubTime < 120) {
+            return dirt;
+          }
+
+          return {
+            ...dirt,
+            hp: dirt.hp - 1,
+            lastScrubTime: now,
+          };
+        })
+        .filter((dirt) => dirt.hp > 0)
+    );
+  };
+
+  const closePopup = (id) => {
+    setPopupList((prev) => prev.filter((popup) => popup.id !== id));
+  };
+
+  if (screen === "start") {
+    return (
+      <div className="start-screen">
+        <h1 className="game-title">또 어질렀어!</h1>
+        <div className="start-character">
+          😄
+        </div>
+        <p>어지르는 캐릭터를 돌보며 화면을 깨끗하게 유지하세요!</p>
+
+        <button onClick={() => setScreen("play")}>시작</button>
+        <div className="credit">
+          Made by 권가연 (@하달다)
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="game-container">
+      <h1>치워라 인간</h1>
+
+      <div className="clean-bar-container">
+        <div
+          className="clean-bar"
+          style={{ width: `${cleanliness}%` }}
+        ></div>
+      </div>
+
+      <p>
+        청결도: {cleanliness}% | 버틴 시간: {formatTime(elapsedTime)}
+      </p>
+
+      <div
+        className={`game-area ${
+          cleanliness <= 20 ? "danger" : cleanliness <= 40 ? "warning" : ""
+        } ${shakeType}`}
+        onMouseDown={() => setIsCleaning(true)}
+        onMouseUp={() => {
+          setIsCleaning(false);
+          stopDragPopup();
+        }}
+        onMouseLeave={() => {
+          setIsCleaning(false);
+          stopDragPopup();
+        }}
+        onMouseMove={(e) => {
+          const area = e.currentTarget.getBoundingClientRect();
+          const x = e.clientX - area.left;
+          const y = e.clientY - area.top;
+
+          setCursorPosition({ x, y });
+          movePopup(e);
+        }}
+      >
+
+        {/* 캐릭터 */}
+        <div
+          className="character"
+          style={{
+            left: `${character.x}%`,
+            top: `${character.y}%`,
+          }}
+        >
+          {getCharacterFace()}
+        </div>
+
+        {characterMessage && (
+          <div
+            className="character-bubble"
+            style={{
+              left: `${character.x + 5}%`,
+              top: `${character.y - 8}%`,
+            }}
+          >
+            {characterMessage}
+          </div>
+        )}
+
+        {/* 무덤 */}
+        {graveList.map((grave) => (
+          <div
+            key={grave.id}
+            className="field-grave"
+            style={{
+              left: `${grave.x}%`,
+              top: `${grave.y}%`,
+            }}
+          >
+            🪦
+          </div>
+        ))}
+
+        {/* 오염물 */}
+        {dirtList.map((dirt) => (
+          <div
+            key={dirt.id}
+            className={`dirt ${dirt.type}`}
+            style={{
+              left: `${dirt.x}%`,
+              top: `${dirt.y}%`,
+              opacity: dirt.hp / dirt.maxHp,
+              transform: `scale(${0.6 + (dirt.hp / dirt.maxHp) * 0.4})`,
+            }}
+            onMouseMove={() => cleanDirt(dirt.id)}
+          >
+            {dirt.icon}
+          </div>
+        ))}
+
+        {/* 팝업 메시지 */}
+        {popupList.map((popup) => (
+          <div
+            key={popup.id}
+            className="annoying-popup"
+            style={{
+              left: `${popup.x}%`,
+              top: `${popup.y}%`,
+            }}
+          >
+            <div
+              className="popup-header"
+              onMouseDown={(e) => {
+                e.stopPropagation();
+                startDragPopup(popup.id);
+              }}
+            >
+              <span>캐릭터 메시지</span>
+              <button
+                onMouseDown={(e) => e.stopPropagation()}
+                onClick={() => closePopup(popup.id)}
+              >
+                X
+              </button>
+            </div>
+            <p>{popup.message}</p>
+          </div>
+        ))}
+
+        {!gameOver && (
+          <div
+            className="tool-cursor"
+            style={{
+              left: `${cursorPosition.x}px`,
+              top: `${cursorPosition.y}px`,
+            }}
+          >
+            {getToolIcon()}
+          </div>
+        )}
+
+        {gameOver && (
+          <div className="game-over">
+            <div className="grave">🪦</div>
+            <h2>캐릭터가 활동을 멈췄습니다...</h2>
+            <p>버틴 시간: {formatTime(elapsedTime)}</p>
+            <button onClick={restartGame}>다시 시작</button>
+          </div>
+        )}
+      </div>
+
+      <div className="tool-bar">
+        <button
+          className={selectedTool === "mop" ? "tool selected" : "tool"}
+          onClick={() => setSelectedTool("mop")}
+        >
+          🧽 걸레
+        </button>
+
+        <button
+          className={selectedTool === "trash" ? "tool selected" : "tool"}
+          onClick={() => setSelectedTool("trash")}
+        >
+          🗑️ 쓰레기통
+        </button>
+
+        <button
+          className={selectedTool === "glue" ? "tool selected" : "tool"}
+          onClick={() => setSelectedTool("glue")}
+        >
+          🩹 본드
+        </button>
+      </div>
+
+      <p>도구를 선택한 뒤, 오염물 위를 문질러 제거하세요!</p>
+    </div>
+  );
+}
+
+export default App;

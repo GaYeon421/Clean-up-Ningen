@@ -1,0 +1,300 @@
+body {
+  margin: 0;
+  font-family: sans-serif;
+  background: #222;
+  color: white;
+}
+
+.game-container {
+  text-align: center;
+  padding: 20px;
+}
+
+.clean-bar-container {
+  width: 300px;
+  height: 25px;
+  background: #555;
+  margin: 10px auto;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.clean-bar {
+  height: 100%;
+  background: limegreen;
+  transition: 0.3s;
+}
+
+.game-area {
+  position: relative;
+  width: 900px;
+  height: 500px;
+  background: #ddd;
+  margin: 20px auto;
+  border: 5px solid #444;
+  overflow: hidden;
+}
+
+.character {
+  position: absolute;
+  font-size: 50px;
+  transition: all 0.8s ease;
+  user-select: none;
+  z-index: 2;
+}
+
+.dirt {
+  position: absolute;
+  font-size: 30px;
+  cursor: pointer;
+  user-select: none;
+  z-index: 3;
+  transition: opacity 0.2s, transform 0.2s;
+}
+
+.tool-bar {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin: 16px auto;
+}
+
+.tool {
+  padding: 12px 18px;
+  font-size: 18px;
+  border: 3px solid #444;
+  border-radius: 12px;
+  background: white;
+  cursor: pointer;
+}
+
+.tool.selected {
+  background: #ffe066;
+  transform: scale(1.08);
+}
+
+.game-over {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  z-index: 20;
+}
+
+.game-over .grave {
+  font-size: 70px;
+  line-height: 1;
+}
+
+.game-over h2 {
+  margin: 0;
+  font-size: 28px;
+}
+
+.game-over button {
+  padding: 12px 24px;
+  font-size: 18px;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.field-grave {
+  position: absolute;
+  font-size: 36px;
+  z-index: 1;
+  user-select: none;
+}
+
+.start-screen {
+  height: 100vh;
+  background: #222;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 28px;
+  text-align: center;
+}
+
+.game-title {
+  font-size: 72px;
+  margin: 0;
+  line-height: 1.1;
+}
+
+.start-character {
+  font-size: 90px;
+  margin-top: 0px;
+  line-height: 1;
+}
+
+.start-screen p {
+  font-size: 20px;
+  margin-top: 10px;
+}
+
+.start-screen button {
+  padding: 14px 36px;
+  font-size: 22px;
+  border: none;
+  border-radius: 14px;
+  cursor: pointer;
+}
+
+.annoying-popup {
+  position: absolute;
+  width: 180px;
+  background: white;
+  color: #222;
+  border: 3px solid #333;
+  border-radius: 8px;
+  z-index: 10;
+  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.4);
+  user-select: none;
+}
+
+.popup-header {
+  background: #444;
+  color: white;
+  padding: 6px 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+}
+
+.popup-header button {
+  background: #ff6666;
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.annoying-popup p {
+  margin: 0;
+  padding: 16px 10px;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.popup-header {
+  cursor: grab;
+}
+
+.popup-header:active {
+  cursor: grabbing;
+}
+
+.credit {
+  position: absolute;
+  bottom: 12px;
+  right: 18px;
+
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.5);
+
+  letter-spacing: 1px;
+}
+
+.character-bubble {
+  position: absolute;
+  background: white;
+  color: #222;
+  padding: 8px 12px;
+  border: 3px solid #333;
+  border-radius: 14px;
+  font-size: 15px;
+  font-weight: bold;
+  z-index: 8;
+  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.25);
+  user-select: none;
+}
+
+.game-area {
+  position: relative;
+  width: 900px;
+  height: 500px;
+  background: #ddd;
+  margin: 20px auto;
+  border: 5px solid #444;
+  overflow: hidden;
+
+  transition: background 0.4s;
+}
+
+.tool-cursor {
+  position: absolute;
+  font-size: 34px;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  z-index: 30;
+  user-select: none;
+}
+
+.game-area.warning::after,
+.game-area.danger::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 6;
+}
+
+.game-area.warning::after {
+  background: rgba(255, 0, 0, 0.12);
+}
+
+.game-area.danger::after {
+  background: rgba(180, 0, 0, 0.28);
+}
+
+.shake-light {
+  animation: shakeLight 0.25s;
+}
+
+.shake-medium {
+  animation: shakeMedium 0.35s;
+}
+
+.shake-heavy {
+  animation: shakeHeavy 0.5s;
+}
+
+@keyframes shakeLight {
+  0% { transform: translate(0, 0); }
+  25% { transform: translate(-2px, 1px); }
+  50% { transform: translate(2px, -1px); }
+  75% { transform: translate(-1px, 1px); }
+  100% { transform: translate(0, 0); }
+}
+
+@keyframes shakeMedium {
+  0% { transform: translate(0, 0); }
+  20% { transform: translate(-5px, 3px); }
+  40% { transform: translate(5px, -3px); }
+  60% { transform: translate(-4px, 2px); }
+  80% { transform: translate(4px, -2px); }
+  100% { transform: translate(0, 0); }
+}
+
+@keyframes shakeHeavy {
+  0% { transform: translate(0, 0); }
+  10% { transform: translate(-10px, 5px); }
+  20% { transform: translate(10px, -5px); }
+  30% { transform: translate(-8px, 4px); }
+  40% { transform: translate(8px, -4px); }
+  50% { transform: translate(-6px, 3px); }
+  60% { transform: translate(6px, -3px); }
+  70% { transform: translate(-4px, 2px); }
+  80% { transform: translate(4px, -2px); }
+  90% { transform: translate(-2px, 1px); }
+  100% { transform: translate(0, 0); }
+}
