@@ -29,6 +29,8 @@ function App() {
   const popupSoundRef = useRef(null);
   const gameOverSoundRef = useRef(null);
 
+  const [particleList, setParticleList] = useState([]);
+
   const restartGame = () => {
     setDirtList([]);
     setPopupList([]);
@@ -297,9 +299,15 @@ function App() {
 
           playSound(cleanSoundRef);
 
+          const newHp = dirt.hp - 1;
+
+          if (newHp <= 0) {
+            createParticles(dirt.x, dirt.y);
+          }
+
           return {
             ...dirt,
-            hp: dirt.hp - 1,
+            hp: newHp,
             lastScrubTime: now,
           };
         })
@@ -309,6 +317,24 @@ function App() {
 
   const closePopup = (id) => {
     setPopupList((prev) => prev.filter((popup) => popup.id !== id));
+  };
+
+  const createParticles = (x, y) => {
+    const newParticles = Array.from({ length: 6 }, () => ({
+      id: Date.now() + Math.random(),
+      x,
+      y,
+      dx: Math.random() * 40 - 20,
+      dy: Math.random() * 40 - 20,
+    }));
+
+    setParticleList((prev) => [...prev, ...newParticles]);
+
+    setTimeout(() => {
+      setParticleList((prev) =>
+        prev.filter((particle) => !newParticles.some((p) => p.id === particle.id))
+      );
+    }, 600);
   };
 
   if (screen === "start") {
@@ -416,6 +442,22 @@ function App() {
             onMouseMove={() => cleanDirt(dirt.id)}
           >
             {dirt.icon}
+          </div>
+        ))}
+
+        {/* 청소 효과 파티클 */}
+        {particleList.map((particle) => (
+          <div
+            key={particle.id}
+            className="particle"
+            style={{
+              left: `${particle.x}%`,
+              top: `${particle.y}%`,
+              "--dx": `${particle.dx}px`,
+              "--dy": `${particle.dy}px`,
+            }}
+          >
+            ✨
           </div>
         ))}
 
