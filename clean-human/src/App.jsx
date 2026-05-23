@@ -30,6 +30,7 @@ function App() {
   const gameOverSoundRef = useRef(null);
 
   const [particleList, setParticleList] = useState([]);
+  const prankType = Math.floor(Math.random() * 3);
 
   const restartGame = () => {
     setDirtList([]);
@@ -235,6 +236,18 @@ function App() {
     gameOverSoundRef.current.volume = 0.8;
   }, []);
 
+  useEffect(() => {
+    if (screen !== "play" || gameOver) return;
+
+    const prankInterval = setInterval(() => {
+      if (Math.random() < 0.4) {
+        characterPrank();
+      }
+    }, 8000);
+
+    return () => clearInterval(prankInterval);
+  }, [screen, gameOver]);
+
   const playSound = (soundRef) => {
     if (!soundRef.current) return;
 
@@ -266,6 +279,70 @@ function App() {
           : popup
       )
     );
+  };
+
+  const changeToolPrank = () => {
+    const tools = ["mop", "trash", "glue"];
+    const randomTool = tools[Math.floor(Math.random() * tools.length)];
+
+    setSelectedTool(randomTool);
+    setCharacterMessage("헤헤! 도구 바꿨지롱 😜");
+    triggerShake("medium");
+
+    setTimeout(() => {
+      setCharacterMessage("");
+    }, 1200);
+  };
+
+  const dirtBombPrank = () => {
+    const dirtTypes = [
+      { type: "dust", icon: "🟤", tool: "mop", hp: 8 },
+      { type: "trash", icon: "🫙", tool: "trash", hp: 1 },
+      { type: "crack", icon: "⚡", tool: "glue", hp: 6 },
+    ];
+
+    const dirtCount =
+      elapsedTime < 30 ? 4 :
+      elapsedTime < 60 ? 6 :
+      elapsedTime < 90 ? 8 :
+      10;
+
+    const newDirties = Array.from({ length: dirtCount }, () => {
+      const randomType = dirtTypes[Math.floor(Math.random() * dirtTypes.length)];
+
+      return {
+        id: Date.now() + Math.random(),
+        x: Math.random() * 85 + 5,
+        y: Math.random() * 75 + 5,
+        type: randomType.type,
+        icon: randomType.icon,
+        requiredTool: randomType.tool,
+        hp: randomType.hp,
+        maxHp: randomType.hp,
+        lastScrubTime: 0,
+      };
+    });
+
+    setDirtList((prev) => [...prev, ...newDirties]);
+    setCharacterMessage("어질러버렸다!! 😈");
+    triggerShake("heavy");
+
+    setTimeout(() => {
+      setCharacterMessage("");
+    }, 1200);
+  };
+
+  const characterPrank = () => {
+    const prankType = Math.floor(Math.random() * 3);
+
+    if (prankType === 0) {
+      changeToolPrank();
+    } else if (prankType === 1) {
+      dirtBombPrank();
+    } else {
+      changeToolPrank();
+      dirtBombPrank();
+    }
   };
 
   const cleanDirt = (id) => {
