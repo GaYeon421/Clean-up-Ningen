@@ -441,7 +441,7 @@ function App() {
 
   return (
     <div className="game-container">
-      <h1>치워라 인간</h1>
+      <h1>또 어질렀어!!</h1>
 
       <div className="clean-bar-container">
         <div
@@ -477,6 +477,12 @@ function App() {
           movePopup(e);
         }}
       >
+
+        {cleanliness <= 20 && !gameOver && (
+          <div className="warning-text">
+            WARNING
+          </div>
+        )}
 
         {/* 캐릭터 */}
         <div
