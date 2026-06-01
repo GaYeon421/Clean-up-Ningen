@@ -31,17 +31,34 @@ function App() {
   const cleanSoundRef = useRef(null);
   const popupSoundRef = useRef(null);
   const gameOverSoundRef = useRef(null);
+  const bgmRef = useRef(null);
+  const [isBgmOn, setIsBgmOn] = useState(true);
 
   const [particleList, setParticleList] = useState([]);
   const prankType = Math.floor(Math.random() * 3);
+
+  const [cleanedCount, setCleanedCount] = useState(0);
+
+  const [unlockedAchievements, setUnlockedAchievements] = useState(() => {
+    return JSON.parse(localStorage.getItem("achievements")) || [];
+  });
+
+  const [achievementPopup, setAchievementPopup] = useState(null);
+  const [showAchievementList, setShowAchievementList] = useState(false);
 
   const restartGame = () => {
     setDirtList([]);
     setPopupList([]);
     setCleanliness(100);
     setElapsedTime(0);
+    setCleanedCount(0);
     setGameOver(false);
     setCharacter({ x: 45, y: 40 });
+
+    if (isBgmOn && bgmRef.current) {
+      bgmRef.current.currentTime = 0;
+      bgmRef.current.play();
+    }
   };
 
   const triggerShake = (type = "medium") => {
@@ -73,6 +90,58 @@ function App() {
     if (selectedTool === "glue") return "🩹";
     return "🧽";
   };
+
+  const achievements = [
+    {
+      id: "survive30",
+      icon: "🏆",
+      name: "첫 생존자",
+      description: "30초 버티기",
+      condition: () => elapsedTime >= 30,
+    },
+    {
+      id: "survive60",
+      icon: "⏱️",
+      name: "끈질긴 인간",
+      description: "1분 버티기",
+      condition: () => elapsedTime >= 60,
+    },
+    {
+      id: "clean50",
+      icon: "🧽",
+      name: "청소 장인",
+      description: "오염물 50개 제거",
+      condition: () => cleanedCount >= 50,
+    },
+    {
+      id: "clean100",
+      icon: "🧽",
+      name: "청소 달인",
+      description: "오염물 100개 제거",
+      condition: () => cleanedCount >= 100,
+    },
+    {
+      id: "dangerSurvivor",
+      icon: "⚠️",
+      name: "위기관리왕",
+      description: "청결도 10% 이하 도달",
+      condition: () => cleanliness <= 10 && screen === "play" && !gameOver,
+    },
+    {
+      id: "survive180",
+      icon: "👑",
+      name: "불굴의 의지",
+      description: "3분 버티기",
+      condition: () => elapsedTime >= 180,
+    },
+    {
+      id: "survive600",
+      icon: "👑",
+      name: "정녕 인간인가",
+      description: "10분 버티기",
+      condition: () => elapsedTime >= 600,
+    },
+  ];
 
   useEffect(() => {
     characterRef.current = character;
@@ -154,6 +223,8 @@ function App() {
 
   useEffect(() => {
     if (cleanliness <= 0 && !gameOver) {
+
+      bgmRef.current?.pause();
 
       playSound(gameOverSoundRef);
 
@@ -242,6 +313,10 @@ function App() {
     cleanSoundRef.current.volume = 0.5;
     popupSoundRef.current.volume = 0.6;
     gameOverSoundRef.current.volume = 0.8;
+
+    bgmRef.current = new Audio("/sounds/bgm.mp3");
+    bgmRef.current.loop = true;
+    bgmRef.current.volume = 0.25;
   }, []);
 
   useEffect(() => {
@@ -256,6 +331,19 @@ function App() {
     return () => clearInterval(prankInterval);
   }, [screen, gameOver]);
 
+  useEffect(() => {
+    if (screen !== "play") return;
+
+    achievements.forEach((achievement) => {
+      if (
+        !unlockedAchievements.includes(achievement.id) &&
+        achievement.condition()
+      ) {
+        unlockAchievement(achievement);
+      }
+    });
+  }, [elapsedTime, cleanedCount, cleanliness, screen, gameOver]);
+
   const playSound = (soundRef) => {
     if (!soundRef.current) return;
 
@@ -263,6 +351,21 @@ function App() {
     soundRef.current.play().catch((error) => {
       console.log("소리 재생 실패:", error);
     });
+  };
+
+  const unlockAchievement = (achievement) => {
+    if (unlockedAchievements.includes(achievement.id)) return;
+
+    const newUnlocked = [...unlockedAchievements, achievement.id];
+
+    setUnlockedAchievements(newUnlocked);
+    localStorage.setItem("achievements", JSON.stringify(newUnlocked));
+
+    setAchievementPopup(achievement);
+
+    setTimeout(() => {
+      setAchievementPopup(null);
+    }, 2500);
   };
 
   const stopDragPopup = () => {
@@ -388,6 +491,7 @@ function App() {
 
           if (newHp <= 0) {
             createParticles(dirt.x, dirt.y);
+            setCleanedCount((prev) => prev + 1);
           }
 
           return {
@@ -426,12 +530,80 @@ function App() {
     return (
       <div className="start-screen">
         <h1 className="game-title">또 어질렀어!</h1>
+
+        <button
+          className="sound-button"
+          onClick={() => {
+            if (!bgmRef.current) return;
+
+            if (isBgmOn) {
+              bgmRef.current.pause();
+              setIsBgmOn(false);
+            } else {
+              bgmRef.current.play();
+              setIsBgmOn(true);
+            }
+          }}
+        >
+          {isBgmOn ? "🔊" : "🔇"}
+        </button>
+
         <div className="start-character">
           😄
         </div>
         <p>어지르는 캐릭터를 돌보며 화면을 깨끗하게 유지하세요!</p>
 
-        <button onClick={() => setScreen("play")}>시작</button>
+        <button
+          className="start-button"
+          onClick={() => {
+            setScreen("play");
+
+            if (isBgmOn && bgmRef.current) {
+              bgmRef.current.play();
+            }
+          }}
+        >
+          시작
+        </button>
+
+        <button
+          className="achievement-button"
+          onClick={() => setShowAchievementList(true)}
+        >
+          🏆 업적 보기
+        </button>
+        
+        {showAchievementList && (
+          <div className="achievement-list-modal">
+            <div className="achievement-list-box">
+              <button
+                className="achievement-close"
+                onClick={() => setShowAchievementList(false)}
+              >
+                X
+              </button>
+
+              <h2>🏆 업적 목록</h2>
+
+              {achievements.map((achievement) => {
+                const unlocked = unlockedAchievements.includes(achievement.id);
+
+                return (
+                  <div
+                    key={achievement.id}
+                    className={`achievement-item ${unlocked ? "unlocked" : "locked"}`}
+                  >
+                    <span>{unlocked ? achievement.icon : "🔒"}</span>
+                    <div>
+                      <strong>{achievement.name}</strong>
+                      <p>{achievement.description}</p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
         <div className="credit">
           Made by 권가연 (@하달다)
         </div>
@@ -442,6 +614,16 @@ function App() {
   return (
     <div className="game-container">
       <h1>또 어질렀어!!</h1>
+
+      {achievementPopup && (
+        <div className="achievement-popup">
+          <div>업적 달성!</div>
+          <strong>
+            {achievementPopup.icon} {achievementPopup.name}
+          </strong>
+          <span>{achievementPopup.description}</span>
+        </div>
+      )}
 
       <div className="clean-bar-container">
         <div
