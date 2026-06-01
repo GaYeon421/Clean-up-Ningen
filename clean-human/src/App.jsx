@@ -46,6 +46,8 @@ function App() {
   const [achievementPopup, setAchievementPopup] = useState(null);
   const [showAchievementList, setShowAchievementList] = useState(false);
 
+  const [showCreditList, setShowCreditList] = useState(false);
+
   const restartGame = () => {
     setDirtList([]);
     setPopupList([]);
@@ -572,7 +574,14 @@ function App() {
         >
           🏆 업적 보기
         </button>
-        
+
+        <button
+          className="credit-button"
+          onClick={() => setShowCreditList(true)}
+        >
+          🎵 음원 출처
+        </button>
+
         {showAchievementList && (
           <div className="achievement-list-modal">
             <div className="achievement-list-box">
@@ -604,6 +613,42 @@ function App() {
             </div>
           </div>
         )}
+
+        {showCreditList && (
+          <div className="credit-modal">
+            <div className="credit-box">
+              <button
+                className="credit-close"
+                onClick={() => setShowCreditList(false)}
+              >
+                X
+              </button>
+
+              <h2>🎵 음원 출처</h2>
+
+              <p>✔ SFX provided by 셀바이뮤직</p>
+              <p>🎵 Title : coin</p>
+              <p>https://sellbuymusic.com/md/sdontfk-ofhtwkx</p>
+
+              <p>✔ SFX provided by 셀바이뮤직</p>
+              <p>🎵 Title : Zap 8</p>
+              <p>https://sellbuymusic.com/md/sgontzt-dfhtwkx</p>
+
+              <p>✔ SFX provided by 셀바이뮤직</p>
+              <p>🎵 Title : Descending 10</p>
+              <p>https://sellbuymusic.com/md/srjnctx-ufhtwkx</p>
+
+              <p>✔ SFX provided by 셀바이뮤직</p>
+              <p>🎵 Title : Error 7</p>
+              <p>https://sellbuymusic.com/md/spvnfwf-efhtwkx</p>
+
+              <p>✔ Music provided by 셀바이뮤직</p>
+              <p>🎵 Title : 뿅뿅뿅울렐레레렐 by SellBuyMusic</p>
+              <p>https://sellbuymusic.com/md/mdpztbc-jfhtwkx</p>
+            </div>
+          </div>
+        )}
+
         <div className="credit">
           Made by 권가연 (@하달다)
         </div>
