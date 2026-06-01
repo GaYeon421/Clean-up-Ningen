@@ -23,6 +23,8 @@ function App() {
   });
   const [shakeType, setShakeType] = useState("");
 
+  const [isNewRecord, setIsNewRecord] = useState(false);
+
   const [popupList, setPopupList] = useState([]);
   const [draggingPopup, setDraggingPopup] = useState(null);
   const [characterMessage, setCharacterMessage] = useState("");
@@ -56,10 +58,31 @@ function App() {
     setCleanedCount(0);
     setGameOver(false);
     setCharacter({ x: 45, y: 40 });
+    setIsNewRecord(false);
 
     if (isBgmOn && bgmRef.current) {
       bgmRef.current.currentTime = 0;
       bgmRef.current.play();
+    }
+  };
+
+  const goToStartScreen = () => {
+    setScreen("start");
+
+    setGameOver(false);
+    setDirtList([]);
+    setPopupList([]);
+    setCleanliness(100);
+    setElapsedTime(0);
+    setCleanedCount(0);
+    setCharacter({ x: 45, y: 40 });
+    setCharacterMessage("");
+    setIsNewRecord(false);
+
+    bgmRef.current?.pause();
+
+    if (bgmRef.current) {
+      bgmRef.current.currentTime = 0;
     }
   };
 
@@ -235,6 +258,7 @@ function App() {
       if (elapsedTime > bestTime) {
         localStorage.setItem("bestTime", elapsedTime);
         setBestTime(elapsedTime);
+        setIsNewRecord(true);
       }
 
       setGameOver(true);
@@ -392,6 +416,18 @@ function App() {
           : popup
       )
     );
+  };
+
+  const cleanDirtAtPoint = (e) => {
+    if (!isCleaning) return;
+
+    const elements = document.elementsFromPoint(e.clientX, e.clientY);
+    const dirtElement = elements.find((el) => el.classList.contains("dirt"));
+
+    if (!dirtElement) return;
+
+    const dirtId = dirtElement.dataset.id;
+    cleanDirt(Number(dirtId));
   };
 
   const changeToolPrank = () => {
@@ -688,22 +724,31 @@ function App() {
       <div
         className={`game-area ${cleanliness <= 20 ? "danger" : cleanliness <= 40 ? "warning" : ""
           } ${shakeType}`}
-        onMouseDown={() => setIsCleaning(true)}
-        onMouseUp={() => {
+        onPointerDown={(e) => {
+          e.preventDefault();
+          e.currentTarget.setPointerCapture(e.pointerId);
+          setIsCleaning(true);
+        }}
+        onPointerUp={(e) => {
+          e.preventDefault();
           setIsCleaning(false);
           stopDragPopup();
         }}
-        onMouseLeave={() => {
+        onPointerLeave={(e) => {
+          e.preventDefault();
           setIsCleaning(false);
           stopDragPopup();
         }}
-        onMouseMove={(e) => {
+        onPointerMove={(e) => {
+          e.preventDefault();
+
           const area = e.currentTarget.getBoundingClientRect();
           const x = e.clientX - area.left;
           const y = e.clientY - area.top;
 
           setCursorPosition({ x, y });
           movePopup(e);
+          cleanDirtAtPoint(e);
         }}
       >
 
@@ -716,10 +761,10 @@ function App() {
         {/* 캐릭터 */}
         <div
           className={`character ${cleanliness <= 20
-              ? "float-sick"
-              : cleanliness <= 50
-                ? "float-normal"
-                : "float-happy"
+            ? "float-sick"
+            : cleanliness <= 50
+              ? "float-normal"
+              : "float-happy"
             }`}
           style={{
             left: `${character.x}%`,
@@ -759,6 +804,7 @@ function App() {
         {dirtList.map((dirt) => (
           <div
             key={dirt.id}
+            data-id={dirt.id}
             className={`dirt ${dirt.type}`}
             style={{
               left: `${dirt.x}%`,
@@ -766,7 +812,6 @@ function App() {
               opacity: dirt.hp / dirt.maxHp,
               transform: `scale(${0.6 + (dirt.hp / dirt.maxHp) * 0.4})`,
             }}
-            onMouseMove={() => cleanDirt(dirt.id)}
           >
             {dirt.icon}
           </div>
@@ -800,14 +845,14 @@ function App() {
           >
             <div
               className="popup-header"
-              onMouseDown={(e) => {
+              onPointerDown={(e) => {
                 e.stopPropagation();
                 startDragPopup(popup.id);
               }}
             >
               <span>캐릭터 메시지</span>
               <button
-                onMouseDown={(e) => e.stopPropagation()}
+                onPointerDown={(e) => e.stopPropagation()}
                 onClick={() => closePopup(popup.id)}
               >
                 X
@@ -831,10 +876,20 @@ function App() {
 
         {gameOver && (
           <div className="game-over">
+            {isNewRecord && (
+              <div className="new-record">
+                🎉 NEW RECORD! 🎉
+              </div>
+            )}
             <div className="grave">🪦</div>
             <h2>캐릭터가 활동을 멈췄습니다...</h2>
             <p>버틴 시간: {formatTime(elapsedTime)}</p>
             <button onClick={restartGame}>다시 시작</button>
+
+            <button
+              className="back-to-menu"
+              onClick={goToStartScreen}
+            >시작 화면</button>
           </div>
         )}
       </div>
