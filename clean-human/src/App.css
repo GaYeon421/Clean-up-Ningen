@@ -51,6 +51,40 @@ body {
   z-index: 2;
 }
 
+.float-happy {
+  animation: float 1.5s ease-in-out infinite;
+}
+
+.float-normal {
+  animation: float 2.5s ease-in-out infinite;
+}
+
+.float-sick {
+  animation: float 4s ease-in-out infinite;
+}
+
+@keyframes floatSick {
+  0% {
+    transform: translateY(0px) rotate(0deg);
+  }
+
+  25% {
+    transform: translateY(-2px) rotate(-1deg);
+  }
+
+  50% {
+    transform: translateY(-3px) rotate(1deg);
+  }
+
+  75% {
+    transform: translateY(-2px) rotate(-1deg);
+  }
+
+  100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+}
+
 .dirt {
   position: absolute;
   font-size: 30px;
@@ -583,36 +617,6 @@ body {
   transform: scale(1.15);
 }
 
-.start-button,
-.achievement-button {
-  width: 220px;
-  padding: 14px;
-
-  background: white;
-  color: #222;
-
-  border: 3px solid #555;
-
-  border-radius: 14px;
-
-  font-size: 24px;
-  font-weight: bold;
-
-  box-shadow: 4px 4px 0 #555;
-}
-
-.credit-button {
-  background: transparent;
-  border: none;
-
-  color: rgba(255,255,255,0.6);
-
-  font-size: 13px;
-
-  cursor: pointer;
-
-  padding: 0;
-}
 
 .credit-button:hover {
   color: white;
@@ -664,4 +668,79 @@ body {
   position: absolute;
   top: 12px;
   right: 12px;
+}
+
+.start-buttons {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+.start-button,
+.achievement-button {
+  width: 220px;
+  padding: 14px;
+
+  background: white;
+  color: #222;
+
+  border: 3px solid #555;
+  border-radius: 14px;
+
+  font-size: 24px;
+  font-weight: bold;
+
+  cursor: pointer;
+  box-shadow: 4px 4px 0 #555;
+
+  transition: 0.15s;
+}
+
+.start-button:hover,
+.achievement-button:hover {
+  transform: scale(1.05);
+}
+
+.credit-button {
+  margin-top: 4px;
+
+  background: transparent;
+  border: none;
+
+  color: rgba(255, 255, 255, 0.55);
+
+  font-size: 11px;
+  opacity: 0.5;
+  cursor: pointer;
+  padding: 0;
+
+  transition: 0.15s;
+}
+
+.credit-button:hover {
+  color: white;
+  transform: scale(1.05);
+}
+
+@keyframes float {
+  0% {
+    transform: translateY(0px) rotate(-2deg);
+  }
+
+  25% {
+    transform: translateY(-4px) rotate(2deg);
+  }
+
+  50% {
+    transform: translateY(-8px) rotate(-2deg);
+  }
+
+  75% {
+    transform: translateY(-4px) rotate(2deg);
+  }
+
+  100% {
+    transform: translateY(0px) rotate(-2deg);
+  }
 }

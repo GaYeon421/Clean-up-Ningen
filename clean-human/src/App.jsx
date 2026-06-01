@@ -555,32 +555,34 @@ function App() {
         </div>
         <p>어지르는 캐릭터를 돌보며 화면을 깨끗하게 유지하세요!</p>
 
-        <button
-          className="start-button"
-          onClick={() => {
-            setScreen("play");
+        <div className="start-buttons">
+          <button
+            className="start-button"
+            onClick={() => {
+              setScreen("play");
 
-            if (isBgmOn && bgmRef.current) {
-              bgmRef.current.play();
-            }
-          }}
-        >
-          시작
-        </button>
+              if (isBgmOn && bgmRef.current) {
+                bgmRef.current.play();
+              }
+            }}
+          >
+            시작
+          </button>
 
-        <button
-          className="achievement-button"
-          onClick={() => setShowAchievementList(true)}
-        >
-          🏆 업적 보기
-        </button>
+          <button
+            className="achievement-button"
+            onClick={() => setShowAchievementList(true)}
+          >
+            🏆 업적 보기
+          </button>
 
-        <button
-          className="credit-button"
-          onClick={() => setShowCreditList(true)}
-        >
-          🎵 음원 출처
-        </button>
+          <button
+            className="credit-button"
+            onClick={() => setShowCreditList(true)}
+          >
+            🎵 음원 출처
+          </button>
+        </div>
 
         {showAchievementList && (
           <div className="achievement-list-modal">
@@ -713,7 +715,12 @@ function App() {
 
         {/* 캐릭터 */}
         <div
-          className="character"
+          className={`character ${cleanliness <= 20
+              ? "float-sick"
+              : cleanliness <= 50
+                ? "float-normal"
+                : "float-happy"
+            }`}
           style={{
             left: `${character.x}%`,
             top: `${character.y}%`,
