@@ -18,6 +18,9 @@ function App() {
   const [gameOver, setGameOver] = useState(false);
   const [graveList, setGraveList] = useState([]);
   const [elapsedTime, setElapsedTime] = useState(0);
+  const [bestTime, setBestTime] = useState(() => {
+    return Number(localStorage.getItem("bestTime")) || 0;
+  });
   const [shakeType, setShakeType] = useState("");
 
   const [popupList, setPopupList] = useState([]);
@@ -155,6 +158,11 @@ function App() {
       playSound(gameOverSoundRef);
 
       triggerShake("heavy");
+
+      if (elapsedTime > bestTime) {
+        localStorage.setItem("bestTime", elapsedTime);
+        setBestTime(elapsedTime);
+      }
 
       setGameOver(true);
 
@@ -303,9 +311,9 @@ function App() {
 
     const dirtCount =
       elapsedTime < 30 ? 4 :
-      elapsedTime < 60 ? 6 :
-      elapsedTime < 90 ? 8 :
-      10;
+        elapsedTime < 60 ? 6 :
+          elapsedTime < 90 ? 8 :
+            10;
 
     const newDirties = Array.from({ length: dirtCount }, () => {
       const randomType = dirtTypes[Math.floor(Math.random() * dirtTypes.length)];
@@ -443,7 +451,9 @@ function App() {
       </div>
 
       <p>
-        청결도: {cleanliness}% | 버틴 시간: {formatTime(elapsedTime)}
+        청결도: {cleanliness}% |
+        버틴 시간: {formatTime(elapsedTime)} |
+        최고 기록: {formatTime(bestTime)}
       </p>
 
       <div
