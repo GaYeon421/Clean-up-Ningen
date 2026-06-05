@@ -118,6 +118,13 @@ function App() {
 
   const achievements = [
     {
+      id: "firstDeath",
+      icon: "💀",
+      name: "첫 죽음",
+      description: "처음으로 청결도 0% 도달",
+      condition: () => gameOver && elapsedTime > 0,
+    },
+    {
       id: "survive30",
       icon: "🏆",
       name: "첫 생존자",
@@ -590,6 +597,12 @@ function App() {
           😄
         </div>
         <p>어지르는 캐릭터를 돌보며 화면을 깨끗하게 유지하세요!</p>
+
+        <div className="mini-guide">
+          <div>먼지(🟤) → 걸레(🧽)</div>
+          <div>쓰레기(🫙) → 쓰레기통(🗑️)</div>
+          <div>금 간 화면(⚡) → 본드(🩹)</div>
+        </div>
 
         <div className="start-buttons">
           <button
