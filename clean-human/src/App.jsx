@@ -627,10 +627,10 @@ function App() {
                 className="achievement-close"
                 onClick={() => setShowAchievementList(false)}
               >
-                X
+                ✕
               </button>
 
-              <h2>🏆 업적 목록</h2>
+              <h2>🏆 업적 도감 🏆</h2>
 
               {achievements.map((achievement) => {
                 const unlocked = unlockedAchievements.includes(achievement.id);
