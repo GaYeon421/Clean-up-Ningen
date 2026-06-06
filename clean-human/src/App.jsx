@@ -67,6 +67,7 @@ function App() {
   };
 
   const goToStartScreen = () => {
+    console.log("시작화면 버튼 클릭됨!");
     setScreen("start");
 
     setGameOver(false);
@@ -739,7 +740,7 @@ function App() {
           } ${shakeType}`}
         onPointerDown={(e) => {
           e.preventDefault();
-          e.currentTarget.setPointerCapture(e.pointerId);
+          //e.currentTarget.setPointerCapture(e.pointerId);
           setIsCleaning(true);
         }}
         onPointerUp={(e) => {
